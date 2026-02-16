@@ -1,7 +1,8 @@
-# software-architecture
-Check branches for different labs
+# SECOND CONTRIBUTOR is the SECOND ACCOUNT THAT I USE FOR WORK AND FOR NON-ACADEMICAL PROJECTS
+# Software Architecture
+Check branches for different labs!
 
-## running
+## Running
 To install dependencies:
 
 ```bash
