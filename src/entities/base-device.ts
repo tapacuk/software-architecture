@@ -38,9 +38,14 @@ export abstract class BaseDevice implements IDevice {
   performTask(task: Task, time: number): void {
     const { intensity, needsNetwork, needsAudio } = task;
     const isPowerAvailable = !this.battery || this.battery.chargePercent > 0;
+    const isBatteryLow = !this.battery || this.battery.chargePercent > 10;
 
     if (!isPowerAvailable) {
       console.log(`${this.brand} cant boot: battery is empty!`);
+      return;
+    }
+    if (!isBatteryLow) {
+      console.log(`${this.brand} cant perform task: battery is low!`);
       return;
     }
 
