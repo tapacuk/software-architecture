@@ -4,5 +4,7 @@ export class Task {
   constructor(
     public name: string,
     public intensity: UsageIntensity,
+    public needsNetwork: boolean,
+    public needsAudio: boolean,
   ) {}
 }

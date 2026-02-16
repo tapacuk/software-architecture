@@ -35,13 +35,8 @@ export abstract class BaseDevice implements IDevice {
     return true;
   }
 
-  performTask(
-    task: Task,
-    time: number,
-    intensity: UsageIntensity,
-    needsNetwork: boolean,
-    needsAudio: boolean,
-  ): void {
+  performTask(task: Task, time: number): void {
+    const { intensity, needsNetwork, needsAudio } = task;
     const isPowerAvailable = !this.battery || this.battery.chargePercent > 0;
 
     if (!isPowerAvailable) {
