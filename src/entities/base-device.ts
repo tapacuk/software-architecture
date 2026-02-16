@@ -60,4 +60,8 @@ export abstract class BaseDevice implements IDevice {
       }
     }
   }
+
+  checkBattery() {
+    return this.battery?.chargePercent.toFixed(1);
+  }
 }
