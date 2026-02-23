@@ -19,6 +19,10 @@
 Папка `entities` містить сутності та їх абстракції для використання.
 Папка `menu` містить взаємодію програми з користувачем через консольний застосунок. Тут описана вся логіка дій. 
 
+### UML Diagram
+<img width="2216" height="1518" alt="src_diagram" src="https://github.com/user-attachments/assets/7a426024-f0fd-4e17-b67c-4e8166602bea" />
+
+
 ### How to run
 To install dependencies:
 ```bash
