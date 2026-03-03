@@ -1,8 +1,4 @@
-import type { BaseDevice } from '../entities/base-device';
-import { Battery } from '../entities/battery';
-import { Computer } from '../entities/computer';
-import { Laptop } from '../entities/laptop';
-import { Phone } from '../entities/phone';
+import { BaseDevice, Phone, Battery, Laptop, Computer } from '../../entities';
 
 type DeviceType = 'phone' | 'laptop' | 'computer';
 

@@ -1,12 +1,14 @@
-import type { BaseDevice } from '../entities/base-device';
-import { Task } from '../entities/task';
-import { DeviceFactory } from '../helpers/device-factory';
-import { Computer } from '../entities/computer';
+import { Task, BaseDevice, Computer } from '../entities';
+import { DoTaskCommand, type TaskCommand } from './commands';
 import { ask } from './helpers/ask';
+import { buildCommands } from './helpers/build-commands';
+import { DeviceFactory } from './helpers/device-factory';
 
-const officeWorkTask = new Task('Work in Excel online', 'low', true, false);
-const gameTask = new Task('Play Minecraft', 'high', false, true);
-const codeTask = new Task('Write code', 'low', false, false);
+const TASKS = [
+  { task: new Task('Work in Excel online', 'low', true, false), hours: 1 },
+  { task: new Task('Play Minecraft', 'high', false, true), hours: 4 },
+  { task: new Task('Write code', 'low', false, false), hours: 2 },
+];
 
 export class Menu {
   async main() {
@@ -70,74 +72,34 @@ export class Menu {
       if (!(device instanceof Computer))
         console.log(`Battery: ${device.checkBattery()}%`);
 
-      console.log(
-        `\n1 | ${device.hasElectricity ? 'Unplug device' : 'Plug device in'}`,
-      );
-      console.log(
-        `2 | ${device.hasSoftware ? 'Uninstall Software' : 'Install Software'}`,
-      );
-      console.log(
-        `3 | ${device.isConnectedToNetwork ? 'Disconnect from Internet' : 'Connect to Internet'}`,
-      );
-      console.log(`4 | Do task`);
+      const commands = buildCommands(device);
+      const lastCommand = commands.length + 1;
 
-      if (device instanceof Computer) {
-        console.log(
-          `5 | ${device.hasAudio ? 'Disconnect Speakers' : 'Connect Speakers'}`,
-        );
-      }
+      commands.map((cmd, i) => {
+        console.log(`${i + 1} | ${cmd.label}`);
+      });
+      console.log(`${lastCommand} | Do task`);
       console.log('0 | Exit');
 
       const option = await ask('\nChoose option:');
-      switch (option) {
-        case '1':
-          device.hasElectricity = !device.hasElectricity;
-          console.clear();
-          console.log(
-            device.hasElectricity
-              ? 'Device connected to Electricity'
-              : 'Device disconnected from Electricity',
-          );
-          break;
-        case '2':
-          device.hasSoftware = !device.hasSoftware;
-          console.clear();
-          console.log(
-            device.hasSoftware
-              ? 'OS Software was installed '
-              : 'OS Software was uninstalled',
-          );
-          break;
-        case '3':
-          device.isConnectedToNetwork = !device.isConnectedToNetwork;
-          console.clear();
-          console.log(
-            device.isConnectedToNetwork
-              ? 'Device is connected to the internet'
-              : 'Device was disconnected from the internet',
-          );
-          break;
-        case '4':
-          console.clear();
-          await this.taskPerformer(device);
-          break;
-        case '5':
-          console.clear();
-          if (device instanceof Computer) {
-            device.hasAudio = !device.hasAudio;
-            console.log(
-              device.hasAudio
-                ? 'Speakers was connected'
-                : 'Speakers disconnected',
-            );
-          } else console.log('ERROR: Unknown option');
-          break;
-        case '0':
-          running = false;
-          break;
-        default:
-          console.clear();
-          console.log('ERROR: Unknown option');
+
+      if (option === '0') {
+        running = false;
+        break;
+      }
+
+      if (option === lastCommand.toString()) {
+        console.clear();
+        await this.taskPerformer(device);
+      }
+      const index = parseInt(option) - 1;
+      const command = commands[index];
+
+      if (command) {
+        console.clear();
+        command.execute();
+      } else {
+        console.log('ERROR: Unknown option');
       }
     }
   }
@@ -147,34 +109,32 @@ export class Menu {
     while (running) {
       console.clear();
       console.log(`\n      TASK IMITATION OF ${device.brand}`);
-      console.log('1 | Work in Excel online for 1 hour');
-      console.log('2 | Play Minecraft for 4 hours');
-      console.log('3 | Write code for 2 hours');
+
+      const commands: TaskCommand[] = TASKS.map(
+        ({ task, hours }) => new DoTaskCommand(device, task, hours),
+      );
+
+      commands.map((cmd, i) => {
+        console.log(`${i + 1} | ${cmd.label}`);
+      });
       console.log('0 | Back');
 
       const option = await ask('\nChoose option:');
-      switch (option) {
-        case '1':
-          console.clear();
-          device.performTask(officeWorkTask, 1);
-          await ask('\n Press Enter to continue...');
-          break;
-        case '2':
-          console.clear();
-          device.performTask(gameTask, 1);
-          await ask('\n Press Enter to continue...');
-          break;
-        case '3':
-          console.clear();
-          device.performTask(codeTask, 1);
-          await ask('\n Press Enter to continue...');
-          break;
-        case '0':
-          running = false;
-          break;
-        default:
-          console.clear();
-          console.log('ERROR: Unknown option');
+
+      if (option === '0') {
+        running = false;
+        break;
+      }
+
+      const index = parseInt(option) - 1;
+      const command = commands[index];
+
+      if (command) {
+        console.clear();
+        command.execute();
+        await ask('\nPress Enter to continue...');
+      } else {
+        console.log('ERROR: Unknown option');
       }
     }
   }
