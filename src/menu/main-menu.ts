@@ -1,14 +1,8 @@
 import type { BaseDevice } from '../entities/base-device';
-import { Battery } from '../entities/battery';
-import { Computer } from '../entities/computer';
-import { Laptop } from '../entities/laptop';
-import { Phone } from '../entities/phone';
 import { Task } from '../entities/task';
+import { DeviceFactory } from '../helpers/device-factory';
+import { Computer } from '../entities/computer';
 import { ask } from './helpers/ask';
-
-const phone = new Phone('iPhone 17 Pro Max', new Battery(3000));
-const laptop = new Laptop('MacBook Air 15', new Battery(7000));
-const pc = new Computer('Asus B29348-349-HFDS7777-S-WA-G');
 
 const officeWorkTask = new Task('Work in Excel online', 'low', true, false);
 const gameTask = new Task('Play Minecraft', 'high', false, true);
@@ -30,15 +24,25 @@ export class Menu {
       switch (choice) {
         case '1':
           console.clear();
+          const phone = DeviceFactory.create(
+            'phone',
+            'iPhone 17 Pro Max',
+            3000,
+          );
           await this.deviceManager(phone);
           break;
         case '2':
           console.clear();
+          const laptop = DeviceFactory.create('laptop', 'MacBook Air 15', 7000);
           await this.deviceManager(laptop);
           break;
         case '3':
           console.clear();
-          await this.deviceManager(pc);
+          const computer = DeviceFactory.create(
+            'computer',
+            'Asus B29348-349-HFDS7777-S-WA-G',
+          );
+          await this.deviceManager(computer);
           break;
         case '0':
           running = false;
@@ -64,7 +68,7 @@ export class Menu {
       );
       console.log(`Audio: ${device.hasAudio ? 'Speakers' : 'None'}`);
       if (!(device instanceof Computer))
-        console.log(`Battery: ${device.checkBattery()}`);
+        console.log(`Battery: ${device.checkBattery()}%`);
 
       console.log(
         `\n1 | ${device.hasElectricity ? 'Unplug device' : 'Plug device in'}`,
