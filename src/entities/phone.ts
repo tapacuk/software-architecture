@@ -1,8 +1,8 @@
 import { BaseDevice } from './base-device';
-import type { IBattery } from './interfaces/battery.interface';
+import type { Battery } from './battery';
 
 export class Phone extends BaseDevice {
-  constructor(brand: string, battery: IBattery) {
+  constructor(brand: string, battery: Battery) {
     super(brand, false, true, false, true, battery);
   }
 }

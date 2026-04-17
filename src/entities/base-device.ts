@@ -1,16 +1,16 @@
-import type { IBattery } from './interfaces/battery.interface';
-import type IDevice from './interfaces/device.interface';
+import { compose } from 'node:stream';
+import { ask } from '../menu/helpers/ask';
+import type { Battery } from './battery';
 import type { Task } from './task';
-import type { UsageIntensity } from './types/usage-intensity.type';
 
-export abstract class BaseDevice implements IDevice {
+export abstract class BaseDevice {
   constructor(
     public brand: string,
     public hasElectricity: boolean = false,
     public hasSoftware: boolean = false,
     public isConnectedToNetwork: boolean = false,
     public hasAudio: boolean = false,
-    protected battery?: IBattery,
+    protected battery?: Battery,
   ) {}
 
   turnOn(): void {
@@ -35,7 +35,7 @@ export abstract class BaseDevice implements IDevice {
     return true;
   }
 
-  performTask(task: Task, time: number): void {
+  async performTask(task: Task) {
     const { intensity, needsNetwork, needsAudio } = task;
     const isPowerAvailable = !this.battery || this.battery.chargePercent > 0;
     const isBatteryLow = !this.battery || this.battery.chargePercent > 10;
@@ -53,15 +53,28 @@ export abstract class BaseDevice implements IDevice {
       console.log(
         `Executing ${task.name} on ${this.brand} (Intensity: ${intensity}).`,
       );
+
       if (this.battery && !this.hasElectricity) {
         console.log(`Device is not connected to electricity - using battery`);
-        this.battery.consume(time, task.intensity);
-        console.log(`Battery: ${this.battery.chargePercent.toFixed(1)}%`);
       }
+
+      const timeStart = Date.now();
+      await ask('\nEnter any key to stop...');
+      const msTime = Date.now() - timeStart;
+      console.clear();
+
+      console.log(`Task: ${task.name}`);
+      if (this.battery && !this.hasElectricity) {
+        this.battery.consume(msTime, task.intensity);
+        console.log(`Battery: ${this.checkBattery()}%`);
+      }
+      console.log(`Time elapsed: ${(msTime / 60000).toFixed(1)}h`);
     }
   }
 
   checkBattery() {
-    return this.battery?.chargePercent.toFixed(1);
+    return !this.battery
+      ? 'No battery!'
+      : this.battery.chargePercent.toFixed(1);
   }
 }

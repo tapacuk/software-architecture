@@ -6,11 +6,11 @@ export class Computer extends BaseDevice {
     super(brand);
   }
 
-  override performTask(task: Task, time: number): void {
+  override async performTask(task: Task) {
     if (!this.hasElectricity) {
       console.log(`Computer ${this.brand} doesnt boot up: no power!`);
       return;
     }
-    super.performTask(task, time);
+    super.performTask(task);
   }
 }

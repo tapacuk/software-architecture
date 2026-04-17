@@ -1,13 +1,13 @@
-import type { IBattery } from './interfaces/battery.interface';
 import type { UsageIntensity } from './types/usage-intensity.type';
 
-export class Battery implements IBattery {
+export class Battery {
   constructor(
     public capacity: number,
     public chargePercent: number = 100,
   ) {}
 
-  consume(hours: number, intensity: UsageIntensity): void {
+  consume(msTime: number, intensity: UsageIntensity): void {
+    const hours = msTime / 60000;
     const maxTime =
       intensity === 'low' ? this.capacity / 64 : this.capacity / 196;
     const reduction = (hours / maxTime) * 100;

@@ -1,5 +1,5 @@
 import { Task, BaseDevice, Computer } from '../entities';
-import { DoTaskCommand, type TaskCommand } from './commands';
+import { DoTaskCommand } from './commands';
 import { ask } from './helpers/ask';
 import { buildCommands } from './helpers/build-commands';
 import { DeviceFactory } from './helpers/device-factory';
@@ -110,9 +110,7 @@ export class Menu {
       console.clear();
       console.log(`\n      TASK IMITATION OF ${device.brand}`);
 
-      const commands: TaskCommand[] = TASKS.map(
-        ({ task, hours }) => new DoTaskCommand(device, task, hours),
-      );
+      const commands = TASKS.map(({ task }) => new DoTaskCommand(device, task));
 
       commands.map((cmd, i) => {
         console.log(`${i + 1} | ${cmd.label}`);
@@ -131,7 +129,7 @@ export class Menu {
 
       if (command) {
         console.clear();
-        command.execute();
+        await command.execute();
         await ask('\nPress Enter to continue...');
       } else {
         console.log('ERROR: Unknown option');
