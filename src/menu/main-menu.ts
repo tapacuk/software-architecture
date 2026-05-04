@@ -59,7 +59,6 @@ export class Menu {
   async deviceManager(device: BaseDevice) {
     let running = true;
     while (running) {
-      console.clear();
       console.log(`\n      IMITATION OF ${device.brand}`);
       console.log(
         `Electricity: ${device.hasElectricity ? 'Connected' : 'Not Connected'}`,
@@ -100,6 +99,7 @@ export class Menu {
         command.execute();
       } else {
         console.log('ERROR: Unknown option');
+        console.clear();
       }
     }
   }
