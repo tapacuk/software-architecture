@@ -5,9 +5,9 @@ import { buildCommands } from './helpers/build-commands';
 import { DeviceFactory } from './helpers/device-factory';
 
 const TASKS = [
-  { task: new Task('Work in Excel online', 'low', true, false), hours: 1 },
-  { task: new Task('Play Minecraft', 'high', false, true), hours: 4 },
-  { task: new Task('Write code', 'low', false, false), hours: 2 },
+  { task: new Task('Work in Excel online', 'low', true, false) },
+  { task: new Task('Play Minecraft', 'high', false, true) },
+  { task: new Task('Write code', 'low', false, false) },
 ];
 
 export class Menu {
