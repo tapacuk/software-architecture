@@ -63,7 +63,8 @@ export abstract class BaseDevice {
       const msTime = Date.now() - timeStart;
       console.clear();
 
-      console.log(`Task: ${task.name}`);
+      console.log(`${this.brand}`);
+      console.log(`Task finished: ${task.name}`);
       if (this.battery && !this.hasElectricity) {
         this.battery.consume(msTime, task.intensity);
         console.log(`Battery: ${this.checkBattery()}%`);
