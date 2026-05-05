@@ -1,4 +1,3 @@
-import { compose } from 'node:stream';
 import { ask } from '../menu/helpers/ask';
 import type { Battery } from './battery';
 import type { Task } from './task';
