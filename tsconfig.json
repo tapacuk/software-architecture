@@ -9,10 +9,9 @@
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "allowJs": true,
-    "ignoreDeprecations": "6.0",
 
     // Bundler mode
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
