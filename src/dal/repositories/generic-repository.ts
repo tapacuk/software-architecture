@@ -5,6 +5,10 @@ export class GenericRepository<
 > implements IRepository<T> {
   protected items: T[] = [];
 
+  constructor(protected storageKey: string) {
+    this.loadFromStorage();
+  }
+
   getAll(): T[] {
     return this.items;
   }
@@ -26,5 +30,16 @@ export class GenericRepository<
 
   delete(id: string): void {
     this.items = this.items.filter((item) => item.id !== id);
+  }
+
+  public saveChanges(): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.items));
+  }
+
+  protected loadFromStorage(): void {
+    const data = localStorage.getItem(this.storageKey);
+    if (data) {
+      this.items = JSON.parse(data);
+    }
   }
 }

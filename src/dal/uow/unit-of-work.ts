@@ -17,4 +17,12 @@ export class UnitOfWork {
     this.activities = new ActivityRepository();
     this.eventPackages = new EventPackageRepository();
   }
+
+  commit(): void {
+    this.rooms.saveChanges();
+    this.bookings.saveChanges();
+    this.activities.saveChanges();
+    this.eventPackages.saveChanges();
+    console.log('Дані успішно збережено в localStorage!');
+  }
 }

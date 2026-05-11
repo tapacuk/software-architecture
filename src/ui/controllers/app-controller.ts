@@ -41,6 +41,8 @@ export class AppController {
   }
 
   private seedData(): void {
+    if (this.uow.rooms.getAll().length > 0) return;
+
     const act1 = new Activity('a1', 'Кіно на проекторі', 'Film');
     const act2 = new Activity('a2', 'PS5 та Xbox', 'Videogame');
     const act3 = new Activity('a3', 'Мафія та Монополія', 'Boardgame');
@@ -60,6 +62,7 @@ export class AppController {
         'Аніматор, торт, ігри',
       ),
     );
+
     this.uow.eventPackages.add(
       new EventPackage(
         'ep2',
@@ -68,5 +71,7 @@ export class AppController {
         'Film',
       ),
     );
+
+    this.uow.commit();
   }
 }

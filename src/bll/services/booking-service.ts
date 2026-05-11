@@ -54,6 +54,7 @@ export class BookingService {
     );
 
     this.uow.bookings.add(newBooking);
+    this.uow.commit();
 
     return true;
   }
@@ -100,6 +101,7 @@ export class BookingService {
     }
 
     this.uow.bookings.delete(bookingId);
+    this.uow.commit();
 
     return true;
   }
