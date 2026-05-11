@@ -1,7 +1,7 @@
 export class Booking {
   constructor(
     public id: string,
-    public hallId: string,
+    public roomID: string,
     public startTime: Date,
     public endTime: Date,
     public isTurnkey: boolean,

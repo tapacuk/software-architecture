@@ -5,59 +5,52 @@ import { Mapper } from '../mappers';
 export class BookingService {
   constructor(private uow: UnitOfWork) {}
 
-  getAvailableHalls(startTime: Date, endTime: Date): RoomDTO[] {
-    const allHalls = this.uow.rooms.getAll();
+  getAvailableRooms(startTime: Date, endTime: Date): RoomDTO[] {
+    const allRooms = this.uow.rooms.getAll();
     const allBookings = this.uow.bookings.getAll();
 
-    const availableHalls = allHalls.filter((room) => {
-      // Отримуємо всі бронювання для поточної зали
-      const hallBookings = allBookings.filter((b) => b.hallId === room.id);
+    const availableRooms = allRooms.filter((room) => {
+      const roomBookings = allBookings.filter((b) => b.roomID === room.id);
 
-      // Логіка перетину часу: перевіряємо, чи є бронювання, яке конфліктує з бажаним часом
-      const hasOverlap = hallBookings.some(
+      const hasOverlap = roomBookings.some(
         (b) => startTime < b.endTime && endTime > b.startTime,
       );
 
-      // Зала вільна, якщо перетинів немає
       return !hasOverlap;
     });
 
-    return availableHalls.map((hall) => Mapper.toRoomDTO(hall));
+    return availableRooms.map((room) => Mapper.toRoomDTO(room));
   }
 
-  bookRoom(bookingDto: BookingDTO): boolean {
-    // 1. Перевірка часу
-    if (bookingDto.startTime >= bookingDto.endTime) {
+  bookRoom(bookingDTO: BookingDTO): boolean {
+    if (bookingDTO.startTime >= bookingDTO.endTime) {
       throw new Error('Час завершення повинен бути пізніше часу початку.');
     }
 
-    // 2. НОВА ПЕРЕВІРКА: Чи існує така зала взагалі?
-    const hallExists = this.uow.rooms.getById(bookingDto.hallId);
-    if (!hallExists) {
+    const roomExists = this.uow.rooms.getById(bookingDTO.roomID);
+    if (!roomExists) {
       throw new Error(
-        `Помилка: Зали з ID "${bookingDto.hallId}" не існує в базі.`,
+        `Помилка: Зали з ID "${bookingDTO.roomID}" не існує в базі.`,
       );
     }
 
-    // 3. Перевірка доступності
-    const availableHalls = this.getAvailableHalls(
-      bookingDto.startTime,
-      bookingDto.endTime,
+    const availableRooms = this.getAvailableRooms(
+      bookingDTO.startTime,
+      bookingDTO.endTime,
     );
-    const isAvailable = availableHalls.some((h) => h.id === bookingDto.hallId);
+    const isAvailable = availableRooms.some((h) => h.id === bookingDTO.roomID);
 
     if (!isAvailable) {
       throw new Error('Помилка: Ця зала вже зайнята на обраний час.');
-      // Тепер ми кидаємо помилку, яку підхопить catch в контролері
     }
 
     const newBooking = new Booking(
-      bookingDto.id,
-      bookingDto.hallId,
-      bookingDto.startTime,
-      bookingDto.endTime,
-      bookingDto.isTurnkey,
-      bookingDto.eventPackageId,
+      bookingDTO.id,
+      bookingDTO.roomID,
+      bookingDTO.startTime,
+      bookingDTO.endTime,
+      bookingDTO.isTurnkey,
+      bookingDTO.eventPackageId,
     );
 
     this.uow.bookings.add(newBooking);
@@ -66,17 +59,48 @@ export class BookingService {
   }
 
   bookTurnkeyEvent(bookingDto: BookingDTO, eventPackageId: string): boolean {
-    // Перевіряємо, чи існує такий пакет послуг
     const eventPackage = this.uow.eventPackages.getById(eventPackageId);
     if (!eventPackage) {
       throw new Error('Вказаного пакету послуг не існує.');
     }
 
-    // Модифікуємо DTO для формату "під ключ"
+    const room = this.uow.rooms.getById(bookingDto.roomID);
+    if (!room) {
+      throw new Error(`Помилка: Кімнати з ID "${bookingDto.roomID}" не існує.`);
+    }
+
+    const hasRequiredActivity = room.activities.some(
+      (act) => act.type === eventPackage.requiredActivityType,
+    );
+
+    if (
+      !hasRequiredActivity &&
+      eventPackage.requiredActivityType != undefined
+    ) {
+      throw new Error(
+        `Відмова! Для пакету "${eventPackage.name}" у кімнаті обов'язково має бути: "${eventPackage.requiredActivityType}". Оберіть іншу кімнату.`,
+      );
+    }
+
     bookingDto.isTurnkey = true;
     bookingDto.eventPackageId = eventPackageId;
 
-    // Викликаємо базовий метод бронювання
     return this.bookRoom(bookingDto);
+  }
+
+  getAllBookings(): BookingDTO[] {
+    const bookings = this.uow.bookings.getAll();
+    return bookings.map((b) => Mapper.toBookingDTO(b));
+  }
+
+  cancelBooking(bookingId: string): boolean {
+    const booking = this.uow.bookings.getById(bookingId);
+    if (!booking) {
+      throw new Error('Помилка: Бронювання не знайдено.');
+    }
+
+    this.uow.bookings.delete(bookingId);
+
+    return true;
   }
 }

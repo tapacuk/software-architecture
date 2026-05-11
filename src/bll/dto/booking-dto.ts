@@ -1,6 +1,6 @@
 export type BookingDTO = {
   id: string;
-  hallId: string;
+  roomID: string;
   startTime: Date;
   endTime: Date;
   isTurnkey: boolean;

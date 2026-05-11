@@ -3,22 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Бронювання залів</title>
+    <title>Антикафе: Бронювання кімнат</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h1>Система управління Антикафе</h1>
 
     <div class="section">
-      <h2>Доступні зали:</h2>
+      <h2>Доступні кімнати:</h2>
       <ul id="rooms-list"></ul>
+      <button
+        id="btn-toggle-rooms"
+        style="
+          margin-top: 16px;
+          background-color: rgb(248, 248, 248);
+          color: #555;
+        "
+      >
+        Показати всі
+      </button>
+    </div>
+
+    <div class="section">
+      <h2>Активні бронювання:</h2>
+      <ul id="bookings-list"></ul>
     </div>
 
     <div class="section">
       <h2>Нове бронювання</h2>
       <label
-        >ID зали:
-        <input type="text" id="input-room-id" placeholder="напр. h1" /></label
+        >ID кімнати:
+        <input type="text" id="input-room-id" placeholder="напр. r1" /></label
       ><br /><br />
       <label
         >Час початку: <input type="datetime-local" id="input-start" /></label
@@ -26,12 +41,34 @@
       <label
         >Час завершення: <input type="datetime-local" id="input-end" /></label
       ><br /><br />
-      <label
-        ><input type="checkbox" id="input-turnkey" /> Захід «під ключ» (Дитячий
-        ДН)</label
-      ><br /><br />
+      <!-- ... інпути часу ... -->
+      <label>
+        <input type="checkbox" id="input-turnkey" />
+        Захід «під ключ»
+      </label>
 
-      <button id="btn-book">Забронювати</button>
+      <!-- НОВИЙ БЛОК: Вибір програми (за замовчуванням прихований) -->
+      <div
+        id="turnkey-options"
+        style="
+          display: none;
+          margin-top: 8px;
+          margin-bottom: 8px;
+          padding-left: 16px;
+          border-left: 3px solid #4caf50;
+        "
+      >
+        <label style="color: #4caf50"
+          >Оберіть програму:
+          <select
+            id="select-event-package"
+            style="width: 100%; padding: 8px; margin-top: 5px"
+          ></select>
+        </label>
+      </div>
+      <br />
+
+      <button id="btn-book" style="margin-top: 16px">Забронювати</button>
     </div>
 
     <script src="dist/app.js"></script>

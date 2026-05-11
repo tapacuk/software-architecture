@@ -15,6 +15,7 @@ export class Mapper {
       id: entity.id,
       name: entity.name,
       description: entity.description,
+      requiredActivityType: entity.requiredActivityType,
     };
   }
 
@@ -31,7 +32,7 @@ export class Mapper {
   public static toBookingDTO(entity: Booking): BookingDTO {
     return {
       id: entity.id,
-      hallId: entity.hallId,
+      roomID: entity.roomID,
       startTime: entity.startTime,
       endTime: entity.endTime,
       isTurnkey: entity.isTurnkey,
