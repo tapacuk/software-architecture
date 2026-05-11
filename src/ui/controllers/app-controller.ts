@@ -45,10 +45,12 @@ export class AppController {
     const act1 = new Activity('a1', 'Кіно на проекторі', 'Film');
     const act2 = new Activity('a2', 'PS5 та Xbox', 'Videogame');
     const act3 = new Activity('a3', 'Мафія та Монополія', 'Boardgame');
+    const act4 = new Activity('a4', 'Настільний футбол', 'Sport');
 
     this.uow.activities.add(act1);
     this.uow.activities.add(act2);
     this.uow.activities.add(act3);
+    this.uow.activities.add(act4);
 
     this.uow.rooms.add(new Room('r1', 'Кінозал', 15, [act1]));
     this.uow.rooms.add(
@@ -56,6 +58,12 @@ export class AppController {
     );
     this.uow.rooms.add(
       new Room('r3', 'Ігрова кімната настільних ігор', 5, [act3]),
+    );
+    this.uow.rooms.add(
+      new Room('r4', 'Ігрова кімната настільного футболу та ігор', 20, [
+        act3,
+        act4,
+      ]),
     );
 
     const event1 = new EventPackage(
