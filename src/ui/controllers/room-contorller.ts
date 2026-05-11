@@ -2,6 +2,7 @@ import type { RoomService, BookingService } from '../../bll';
 
 export class RoomController {
   private showAll: boolean = false;
+  private selectedActivity: string = 'all'; // Додано стан для фільтру
 
   constructor(
     private roomService: RoomService,
@@ -15,19 +16,63 @@ export class RoomController {
         this.showAll = !this.showAll;
         toggleBtn.textContent = this.showAll
           ? 'Показувати лише вільні зараз'
-          : 'Показати всі';
+          : 'Показати заброньовані';
         this.renderRooms();
       });
     }
+
+    // Слухач подій для випадаючого списку фільтру
+    const filterSelect = document.getElementById(
+      'select-activity-filter',
+    ) as HTMLSelectElement;
+    if (filterSelect) {
+      filterSelect.addEventListener('change', (e) => {
+        this.selectedActivity = (e.target as HTMLSelectElement).value;
+        this.renderRooms();
+      });
+    }
+
+    // Заповнюємо список активностями при ініціалізації
+    this.populateActivityFilter();
+  }
+
+  // Метод для динамічного заповнення випадаючого списку
+  private populateActivityFilter(): void {
+    const filterSelect = document.getElementById(
+      'select-activity-filter',
+    ) as HTMLSelectElement;
+    if (!filterSelect) return;
+
+    const rooms = this.roomService.getAllRooms();
+    const uniqueActivityTypes = new Set<string>();
+
+    // Збираємо всі унікальні ТИПИ активностей з усіх кімнат (використовуємо a.type)
+    rooms.forEach((r) =>
+      r.activities.forEach((a) => uniqueActivityTypes.add(a.type)),
+    );
+
+    uniqueActivityTypes.forEach((actType) => {
+      const option = document.createElement('option');
+      option.value = actType;
+      option.textContent = actType; // В select буде відображатися тип (напр. "Настільна гра")
+      filterSelect.appendChild(option);
+    });
   }
 
   public renderRooms(): void {
     const listElement = document.getElementById('rooms-list');
     if (!listElement) return;
 
-    const rooms = this.roomService.getAllRooms();
+    let rooms = this.roomService.getAllRooms();
     const bookings = this.bookingService.getAllBookings();
     const now = new Date();
+
+    // Застосовуємо фільтр за ТИПОМ перед відмальовуванням (використовуємо a.type)
+    if (this.selectedActivity !== 'all') {
+      rooms = rooms.filter((room) =>
+        room.activities.some((a) => a.type === this.selectedActivity),
+      );
+    }
 
     listElement.innerHTML = '';
 
