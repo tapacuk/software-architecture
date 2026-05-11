@@ -7,7 +7,7 @@ export class AppController {
   private uow: UnitOfWork;
   private roomService: RoomService;
   private bookingService: BookingService;
-  private eventPackageService: EventPackageService; // ДОДАЛИ ПОЛЕ
+  private eventPackageService: EventPackageService;
 
   constructor() {
     this.uow = new UnitOfWork();
@@ -15,7 +15,7 @@ export class AppController {
 
     this.roomService = new RoomService(this.uow);
     this.bookingService = new BookingService(this.uow);
-    this.eventPackageService = new EventPackageService(this.uow); // ІНІЦІАЛІЗУВАЛИ
+    this.eventPackageService = new EventPackageService(this.uow);
   }
 
   public start(): void {
@@ -24,7 +24,6 @@ export class AppController {
       this.bookingService,
     );
 
-    // ПЕРЕДАЄМО eventPackageService ДРУГИМ ПАРАМЕТРОМ
     const bookingController = new BookingController(
       this.bookingService,
       this.eventPackageService,
@@ -52,25 +51,41 @@ export class AppController {
     this.uow.activities.add(act3);
 
     this.uow.rooms.add(new Room('r1', 'Кінозал', 15, [act1]));
-    this.uow.rooms.add(new Room('r2', 'Ігрова кімната', 5, [act2, act3]));
-
-    // Додали ДВА пакети, щоб було цікавіше
-    this.uow.eventPackages.add(
-      new EventPackage(
-        'ep1',
-        'Дитячий День Народження',
-        'Аніматор, торт, ігри',
-      ),
+    this.uow.rooms.add(
+      new Room('r2', 'Ігрова кімната з приставками', 5, [act2]),
+    );
+    this.uow.rooms.add(
+      new Room('r3', 'Ігрова кімната настільних ігор', 5, [act3]),
     );
 
-    this.uow.eventPackages.add(
-      new EventPackage(
-        'ep2',
-        'Ніч Кіно',
-        'Безлімітний попкорн, 3 фільми',
-        'Film',
-      ),
+    const event1 = new EventPackage(
+      'ep1',
+      'День Народження для Дітей',
+      'Аніматор, торт, ігри',
     );
+    const event2 = new EventPackage(
+      'ep2',
+      'Ніч Кіно',
+      'Безлімітний попкорн, 3 фільми',
+      'Film',
+    );
+    const event3 = new EventPackage(
+      'ep3',
+      'Snack-n-Chill',
+      'Ігрова кімната настільних ігор, додаткові снеки та напої',
+      'Boardgame',
+    );
+    const event4 = new EventPackage(
+      'ep4',
+      'Snack-n-Chill з Приставками',
+      'Ігрова кімната відеоігор, додаткові снеки та напої',
+      'Boardgame',
+    );
+
+    this.uow.eventPackages.add(event1);
+    this.uow.eventPackages.add(event2);
+    this.uow.eventPackages.add(event3);
+    this.uow.eventPackages.add(event4);
 
     this.uow.commit();
   }
