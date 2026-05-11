@@ -23,6 +23,7 @@ export class UnitOfWork {
     this.bookings.saveChanges();
     this.activities.saveChanges();
     this.eventPackages.saveChanges();
+
     console.log('Дані успішно збережено в localStorage!');
   }
 }

@@ -106,9 +106,8 @@ export class BookingController {
         }
       });
 
-      // Стилізація самого елемента списку
       li.style.display = 'flex';
-      li.style.justifyContent = 'space-between'; // Розсовує текст і кнопку по краях
+      li.style.justifyContent = 'space-between';
       li.style.alignItems = 'center';
       li.style.marginBottom = '10px';
 
@@ -116,7 +115,6 @@ export class BookingController {
         li.style.borderLeft = '4px solid #f1c40f';
       }
 
-      // Додаємо текст і кнопку в li
       li.appendChild(textSpan);
       li.appendChild(deleteBtn);
 
