@@ -1,7 +1,7 @@
 import type { ActivityDTO } from './activity-dto';
 
-export type RoomDTO = {
+export interface RoomDTO {
   id: string;
   name: string;
   activities: ActivityDTO[];
-};
+}
