@@ -87,7 +87,7 @@ export class AppController {
       'ep4',
       'Snack-n-Chill з Приставками',
       'Ігрова кімната відеоігор, додаткові снеки та напої',
-      'Boardgame',
+      'Videogame',
     );
 
     this.uow.eventPackages.add(event1);
