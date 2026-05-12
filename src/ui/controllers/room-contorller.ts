@@ -2,7 +2,7 @@ import type { RoomService, BookingService } from '../../bll';
 
 export class RoomController {
   private showAll: boolean = false;
-  private selectedActivity: string = 'all'; // Додано стан для фільтру
+  private selectedActivity: string = 'all';
 
   constructor(
     private roomService: RoomService,
@@ -21,7 +21,6 @@ export class RoomController {
       });
     }
 
-    // Слухач подій для випадаючого списку фільтру
     const filterSelect = document.getElementById(
       'select-activity-filter',
     ) as HTMLSelectElement;
@@ -32,11 +31,9 @@ export class RoomController {
       });
     }
 
-    // Заповнюємо список активностями при ініціалізації
     this.populateActivityFilter();
   }
 
-  // Метод для динамічного заповнення випадаючого списку
   private populateActivityFilter(): void {
     const filterSelect = document.getElementById(
       'select-activity-filter',
@@ -46,7 +43,6 @@ export class RoomController {
     const rooms = this.roomService.getAllRooms();
     const uniqueActivityTypes = new Set<string>();
 
-    // Збираємо всі унікальні ТИПИ активностей з усіх кімнат (використовуємо a.type)
     rooms.forEach((r) =>
       r.activities.forEach((a) => uniqueActivityTypes.add(a.type)),
     );
@@ -54,7 +50,7 @@ export class RoomController {
     uniqueActivityTypes.forEach((actType) => {
       const option = document.createElement('option');
       option.value = actType;
-      option.textContent = actType; // В select буде відображатися тип (напр. "Настільна гра")
+      option.textContent = actType;
       filterSelect.appendChild(option);
     });
   }
@@ -67,7 +63,6 @@ export class RoomController {
     const bookings = this.bookingService.getAllBookings();
     const now = new Date();
 
-    // Застосовуємо фільтр за ТИПОМ перед відмальовуванням (використовуємо a.type)
     if (this.selectedActivity !== 'all') {
       rooms = rooms.filter((room) =>
         room.activities.some((a) => a.type === this.selectedActivity),
