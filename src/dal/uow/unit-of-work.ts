@@ -24,6 +24,6 @@ export class UnitOfWork {
     this.activities.saveChanges();
     this.eventPackages.saveChanges();
 
-    console.log('Дані успішно збережено в localStorage!');
+    console.log('Дані успішно збережено!');
   }
 }

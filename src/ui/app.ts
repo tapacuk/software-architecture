@@ -1,6 +1,16 @@
-import { AppController } from './controllers/app-controller';
+import { BookingController } from './controllers/booking-controller';
+import { RoomController } from './controllers/room-contorller';
 
-const app = new AppController();
-app.start();
+document.addEventListener('DOMContentLoaded', () => {
+  const roomController = new RoomController();
 
-console.log('Застосунок успішно ініціалізовано!');
+  const bookingController = new BookingController(() => {
+    roomController.renderRooms();
+  });
+
+  roomController.initBindings();
+  bookingController.initBindings();
+
+  roomController.renderRooms();
+  bookingController.renderBookings();
+});

@@ -1,11 +1,18 @@
-import type { IRepository } from './interfaces';
+import * as fs from 'fs';
+import * as path from 'path';
 
-export class GenericRepository<
-  T extends { id: string },
-> implements IRepository<T> {
+export class GenericRepository<T extends { id: string }> {
   protected items: T[] = [];
+  private filePath: string;
 
   constructor(protected storageKey: string) {
+    const dataDir = path.resolve(process.cwd(), 'data');
+
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    this.filePath = path.join(dataDir, `${this.storageKey}.json`);
     this.loadFromStorage();
   }
 
@@ -33,13 +40,19 @@ export class GenericRepository<
   }
 
   public saveChanges(): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.items));
+    fs.writeFileSync(
+      this.filePath,
+      JSON.stringify(this.items, null, 2),
+      'utf-8',
+    );
   }
 
   protected loadFromStorage(): void {
-    const data = localStorage.getItem(this.storageKey);
-    if (data) {
+    if (fs.existsSync(this.filePath)) {
+      const data = fs.readFileSync(this.filePath, 'utf-8');
       this.items = JSON.parse(data);
+    } else {
+      this.items = [];
     }
   }
 }

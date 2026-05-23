@@ -1,15 +1,5 @@
-import {
-  BookingService,
-  EventPackageService,
-  type BookingDTO,
-} from '../../bll';
-
 export class BookingController {
-  constructor(
-    private bookingService: BookingService,
-    private eventPackageService: EventPackageService,
-    private onBookingSuccess: () => void,
-  ) {}
+  constructor(private onBookingSuccess: () => void) {}
 
   public initBindings(): void {
     const bookBtn = document.getElementById('btn-book');
@@ -33,96 +23,116 @@ export class BookingController {
     this.populateEventPackages();
   }
 
-  private populateEventPackages(): void {
+  private async populateEventPackages(): Promise<void> {
     const select = document.getElementById(
       'select-event-package',
     ) as HTMLSelectElement;
     if (!select) return;
 
-    const packages = this.eventPackageService.getAllPackages();
-    select.innerHTML = '';
-
-    packages.forEach((pkg) => {
-      const option = document.createElement('option');
-      option.value = pkg.id;
-      option.textContent = `${pkg.name} (${pkg.description})`;
-      select.appendChild(option);
-    });
+    try {
+      const res = await fetch('http://localhost:8080/api/packages');
+      if (!res.ok) throw new Error('Не вдалося отримати пакети');
+      const packages = await res.json();
+      select.innerHTML = '';
+      packages.forEach((pkg: any) => {
+        const option = document.createElement('option');
+        option.value = pkg.id;
+        option.textContent = `${pkg.name} (${pkg.description})`;
+        select.appendChild(option);
+      });
+    } catch (e: any) {
+      select.innerHTML =
+        '<option disabled>Помилка завантаження пакетів</option>';
+    }
   }
 
-  public renderBookings(): void {
+  public async renderBookings(): Promise<void> {
     const list = document.getElementById('bookings-list');
     if (!list) return;
-
-    const bookings = this.bookingService.getAllBookings();
-    const packages = this.eventPackageService.getAllPackages();
     list.innerHTML = '';
+    try {
+      const [bookingsRes, packagesRes] = await Promise.all([
+        fetch('http://localhost:8080/api/bookings'),
+        fetch('http://localhost:8080/api/packages'),
+      ]);
+      if (!bookingsRes.ok || !packagesRes.ok)
+        throw new Error('Помилка завантаження');
+      const bookings = await bookingsRes.json();
+      const packages = await packagesRes.json();
 
-    if (bookings.length === 0) {
-      list.innerHTML =
-        '<a style="color: #7f8c8d;">Немає активних бронювань</a>';
-      return;
-    }
-
-    bookings.forEach((b) => {
-      const li = document.createElement('li');
-
-      let typeText = '';
-      if (b.isTurnkey && b.eventPackageId) {
-        const pkg = packages.find((p) => p.id === b.eventPackageId);
-        typeText = pkg ? ` (Під ключ: ${pkg.name})` : ' (Під ключ)';
+      if (bookings.length === 0) {
+        list.innerHTML =
+          '<a style="color: #7f8c8d;">Немає активних бронювань</a>';
+        return;
       }
 
-      const start = b.startTime.toLocaleString('uk-UA', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-      const end = b.endTime.toLocaleString('uk-UA', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-
-      const textSpan = document.createElement('span');
-      textSpan.innerHTML = `<div>Кімната (${b.roomID}) ${typeText}</div> 
-                            <div>Забронювано з ${start} по ${end}</div>`;
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = '✕';
-
-      deleteBtn.addEventListener('click', () => {
-        const confirmDelete = confirm(
-          'Ви впевнені, що хочете скасувати це бронювання?',
-        );
-        if (confirmDelete) {
-          try {
-            this.bookingService.cancelBooking(b.id);
-            this.renderBookings();
-            this.onBookingSuccess();
-          } catch (error: any) {
-            alert(error.message);
-          }
+      bookings.forEach((b: any) => {
+        const li = document.createElement('li');
+        let typeText = '';
+        if (b.isTurnkey && b.eventPackageId) {
+          const pkg = packages.find((p: any) => p.id === b.eventPackageId);
+          typeText = pkg ? ` (Під ключ: ${pkg.name})` : ' (Під ключ)';
         }
+
+        const start = new Date(b.startTime).toLocaleString('uk-UA', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        const end = new Date(b.endTime).toLocaleString('uk-UA', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        const textSpan = document.createElement('span');
+        textSpan.innerHTML = `<div>Кімната (${b.roomID}) ${typeText}</div> 
+                              <div>Забронювано з ${start} по ${end}</div>`;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '✕';
+
+        deleteBtn.addEventListener('click', async () => {
+          const confirmDelete = confirm(
+            'Ви впевнені, що хочете скасувати це бронювання?',
+          );
+          if (confirmDelete) {
+            try {
+              const res = await fetch(
+                `http://localhost:8080/api/bookings/${b.id}`,
+                {
+                  method: 'DELETE',
+                },
+              );
+              if (!res.ok) throw new Error('Не вдалося скасувати бронювання');
+              await this.renderBookings();
+              this.onBookingSuccess();
+            } catch (error: any) {
+              alert(error.message);
+            }
+          }
+        });
+
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        li.style.alignItems = 'center';
+        li.style.marginBottom = '10px';
+
+        if (b.isTurnkey) {
+          li.style.borderLeft = '4px solid #f1c40f';
+        }
+
+        li.appendChild(textSpan);
+        li.appendChild(deleteBtn);
+        list.appendChild(li);
       });
-
-      li.style.display = 'flex';
-      li.style.justifyContent = 'space-between';
-      li.style.alignItems = 'center';
-      li.style.marginBottom = '10px';
-
-      if (b.isTurnkey) {
-        li.style.borderLeft = '4px solid #f1c40f';
-      }
-
-      li.appendChild(textSpan);
-      li.appendChild(deleteBtn);
-
-      list.appendChild(li);
-    });
+    } catch (e: any) {
+      list.innerHTML =
+        '<a style="color: #e74c3c;">Помилка завантаження бронювань</a>';
+    }
   }
 
-  private handleBooking(): void {
+  private async handleBooking(): Promise<void> {
     const roomInput = document.getElementById(
       'input-room-id',
     ) as HTMLInputElement | null;
@@ -167,27 +177,30 @@ export class BookingController {
       return;
     }
 
-    const dto: BookingDTO = {
+    const dto = {
       id: Date.now().toString(),
-      roomID: roomID,
-      startTime: startTime,
-      endTime: endTime,
-      isTurnkey: isTurnkey,
+      roomId: roomID,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      isTurnkeyEvent: isTurnkey,
       eventPackageId: isTurnkey ? selectedPackageId : undefined,
     };
 
     try {
-      const success = isTurnkey
-        ? this.bookingService.bookTurnkeyEvent(dto, dto.eventPackageId!)
-        : this.bookingService.bookRoom(dto);
-
-      if (success) {
-        alert(`Успішно забронювано кімнату ${roomID}!`);
-        this.renderBookings();
-        this.onBookingSuccess();
+      const res = await fetch('http://localhost:8080/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Не вдалося забронювати кімнату');
       }
+      alert(`Успішно забронювано кімнату ${roomID}!`);
+      await this.renderBookings();
+      this.onBookingSuccess();
     } catch (error: any) {
-      alert('Відмова: ' + error.message);
+      alert('Відмова: ' + (error.message || 'Невідома помилка'));
     }
   }
 }

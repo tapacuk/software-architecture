@@ -1,13 +1,8 @@
-import type { RoomService, BookingService } from '../../bll';
-
 export class RoomController {
   private showAll: boolean = false;
   private selectedActivity: string = 'all';
 
-  constructor(
-    private roomService: RoomService,
-    private bookingService: BookingService,
-  ) {}
+  constructor() {}
 
   public initBindings(): void {
     const toggleBtn = document.getElementById('btn-toggle-rooms');
@@ -34,93 +29,117 @@ export class RoomController {
     this.populateActivityFilter();
   }
 
-  private populateActivityFilter(): void {
+  private async populateActivityFilter(): Promise<void> {
     const filterSelect = document.getElementById(
       'select-activity-filter',
     ) as HTMLSelectElement;
     if (!filterSelect) return;
 
-    const rooms = this.roomService.getAllRooms();
-    const uniqueActivityTypes = new Set<string>();
+    try {
+      const response = await fetch('http://localhost:8080/api/rooms');
+      const rooms: any[] = await response.json();
+      const uniqueActivityTypes = new Set<string>();
 
-    rooms.forEach((r) =>
-      r.activities.forEach((a) => uniqueActivityTypes.add(a.type)),
-    );
+      rooms.forEach((r) =>
+        r.activities.forEach((a: any) => uniqueActivityTypes.add(a.type)),
+      );
 
-    uniqueActivityTypes.forEach((actType) => {
-      const option = document.createElement('option');
-      option.value = actType;
-      option.textContent = actType;
-      filterSelect.appendChild(option);
-    });
+      uniqueActivityTypes.forEach((actType) => {
+        const option = document.createElement('option');
+        option.value = actType;
+        option.textContent = actType;
+        filterSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Помилка завантаження фільтрів:', error);
+    }
   }
 
-  public renderRooms(): void {
+  // Звертається до API
+  public async renderRooms(): Promise<void> {
     const listElement = document.getElementById('rooms-list');
     if (!listElement) return;
 
-    let rooms = this.roomService.getAllRooms();
-    const bookings = this.bookingService.getAllBookings();
-    const now = new Date();
+    try {
+      const [roomsRes, bookingsRes] = await Promise.all([
+        fetch('http://localhost:8080/api/rooms'),
+        fetch('http://localhost:8080/api/bookings'),
+      ]);
 
-    if (this.selectedActivity !== 'all') {
-      rooms = rooms.filter((room) =>
-        room.activities.some((a) => a.type === this.selectedActivity),
-      );
+      let rooms: any[] = await roomsRes.json();
+      const rawBookings: any[] = await bookingsRes.json();
+
+      const bookings = rawBookings.map((b) => ({
+        ...b,
+        startTime: new Date(b.startTime),
+        endTime: new Date(b.endTime),
+      }));
+
+      const now = new Date();
+
+      if (this.selectedActivity !== 'all') {
+        rooms = rooms.filter((room) =>
+          room.activities.some((a: any) => a.type === this.selectedActivity),
+        );
+      }
+
+      listElement.innerHTML = '';
+
+      const roomsWithStatus = rooms.map((room) => {
+        const activeBookings = bookings.filter(
+          (b) => b.roomID === room.id && b.startTime <= now && b.endTime > now,
+        );
+        return {
+          room: room,
+          activeBookings: activeBookings,
+          isOccupied: activeBookings.length > 0,
+        };
+      });
+
+      roomsWithStatus.sort((a, b) => {
+        if (a.isOccupied === b.isOccupied) return 0;
+        return a.isOccupied ? 1 : -1;
+      });
+
+      roomsWithStatus.forEach((item) => {
+        const { room, activeBookings, isOccupied } = item;
+
+        if (!this.showAll && isOccupied) {
+          return;
+        }
+
+        const li = document.createElement('li');
+        const activitiesNames = room.activities
+          .map((a: any) => a.name)
+          .join(', ');
+
+        let statusHtml = '';
+        if (isOccupied) {
+          const freeAtTimes = activeBookings.map((b) => b.endTime.getTime());
+          const maxFreeAt = new Date(Math.max(...freeAtTimes));
+          const timeStr = maxFreeAt.toLocaleString('uk-UA', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
+          statusHtml = `🔴 | Зайнята до ${timeStr}`;
+          li.style.borderLeft = '4px solid var(--attention-color)';
+        } else {
+          statusHtml = `🟢 | Вільна зараз`;
+        }
+
+        li.innerHTML = `
+                  <div style="margin-bottom: 0px;"><b>Кімната:</b> ${room.name} (ID: ${room.id})</div>
+                  <div style="margin-bottom: 0px;">${activitiesNames}</div>
+                  <div style="font-weight: 500;">${statusHtml}</div>
+              `;
+
+        listElement.appendChild(li);
+      });
+    } catch (error) {
+      console.error('Помилка завантаження кімнат:', error);
     }
-
-    listElement.innerHTML = '';
-
-    const roomsWithStatus = rooms.map((room) => {
-      const activeBookings = bookings.filter(
-        (b) => b.roomID === room.id && b.startTime <= now && b.endTime > now,
-      );
-      return {
-        room: room,
-        activeBookings: activeBookings,
-        isOccupied: activeBookings.length > 0,
-      };
-    });
-
-    roomsWithStatus.sort((a, b) => {
-      if (a.isOccupied === b.isOccupied) return 0;
-      return a.isOccupied ? 1 : -1;
-    });
-
-    roomsWithStatus.forEach((item) => {
-      const { room, activeBookings, isOccupied } = item;
-
-      if (!this.showAll && isOccupied) {
-        return;
-      }
-
-      const li = document.createElement('li');
-      const activitiesNames = room.activities.map((a) => a.name).join(', ');
-
-      let statusHtml = '';
-      if (isOccupied) {
-        const freeAtTimes = activeBookings.map((b) => b.endTime.getTime());
-        const maxFreeAt = new Date(Math.max(...freeAtTimes));
-        const timeStr = maxFreeAt.toLocaleString('uk-UA', {
-          day: '2-digit',
-          month: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-
-        statusHtml = `🔴 | Зайнята до ${timeStr}`;
-        li.style.borderLeft = '4px solid var(--attention-color)';
-      } else {
-        statusHtml = `🟢 | Вільна зараз`;
-      }
-
-      li.innerHTML = `
-                <div style="margin-bottom: 0px;"><b>Кімната:</b> ${room.name} (ID: ${room.id})</div>
-                <div style="margin-bottom: 0px;">${activitiesNames}</div>
-                <div style="font-weight: 500;">${statusHtml}</div>
-            `;
-
-      listElement.appendChild(li);
-    });
   }
 }
