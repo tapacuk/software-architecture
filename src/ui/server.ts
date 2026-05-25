@@ -9,10 +9,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// === 1. Dependency Injection ===
 const uow = new UnitOfWork();
 
-// === ІНІЦІАЛІЗАЦІЯ БАЗИ ДАНИХ ===
 if (uow.rooms.getAll().length === 0) {
   const act1 = new Activity('a1', 'Кіно на проекторі', 'Film');
   const act2 = new Activity('a2', 'PS5 та Xbox', 'Videogame');
@@ -72,7 +70,6 @@ const eventPackageService = new EventPackageService(uow);
 const roomController = new RoomApiController(roomService);
 const bookingController = new BookingApiController(bookingService);
 
-// === 2. Налаштування маршрутів (Routes) ===
 app.get('/api/rooms', roomController.getAllRooms);
 app.get('/api/bookings', bookingController.getAllBookings);
 app.get('/api/packages', (req, res) => {
@@ -81,7 +78,6 @@ app.get('/api/packages', (req, res) => {
 app.post('/api/bookings', bookingController.createBooking);
 app.delete('/api/bookings/:id', bookingController.deleteBooking);
 
-// === 3. Запуск сервера ===
 app.listen(8080, () => {
-  console.log('🚀 Web API запущено на http://localhost:8080');
+  console.log('API запущено на http://localhost:8080');
 });

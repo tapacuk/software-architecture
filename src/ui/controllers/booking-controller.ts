@@ -81,6 +81,8 @@ export class BookingController {
           minute: '2-digit',
         });
         const end = new Date(b.endTime).toLocaleString('uk-UA', {
+          day: '2-digit',
+          month: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
         });
@@ -165,7 +167,7 @@ export class BookingController {
     const selectedPackageId = packageSelect.value;
 
     if (!roomID || !startTimeStr || !endTimeStr) {
-      alert('Помилка: Заповніть всі поля!');
+      alert('Заповніть всі поля!');
       return;
     }
 
@@ -173,7 +175,7 @@ export class BookingController {
     const endTime = new Date(endTimeStr);
 
     if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-      alert('Помилка: Неправильний формат дати або часу!');
+      alert('Неправильний формат дати або часу!');
       return;
     }
 
@@ -194,7 +196,10 @@ export class BookingController {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Не вдалося забронювати кімнату');
+
+        throw new Error(
+          err.error || err.message || 'Не вдалося забронювати кімнату',
+        );
       }
       alert(`Успішно забронювано кімнату ${roomID}!`);
       await this.renderBookings();

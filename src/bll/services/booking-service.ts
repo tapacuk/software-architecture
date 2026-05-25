@@ -29,9 +29,7 @@ export class BookingService {
 
     const roomExists = this.uow.rooms.getById(bookingDTO.roomID);
     if (!roomExists) {
-      throw new Error(
-        `Помилка: Зали з ID "${bookingDTO.roomID}" не існує в базі.`,
-      );
+      throw new Error(`Зали з ID "${bookingDTO.roomID}" не існує в базі.`);
     }
 
     const availableRooms = this.getAvailableRooms(
@@ -41,7 +39,7 @@ export class BookingService {
     const isAvailable = availableRooms.some((h) => h.id === bookingDTO.roomID);
 
     if (!isAvailable) {
-      throw new Error('Помилка: Ця зала вже зайнята на обраний час.');
+      throw new Error('Ця зала вже зайнята на обраний час.');
     }
 
     const newBooking = new Booking(
@@ -67,7 +65,7 @@ export class BookingService {
 
     const room = this.uow.rooms.getById(bookingDto.roomID);
     if (!room) {
-      throw new Error(`Помилка: Кімнати з ID "${bookingDto.roomID}" не існує.`);
+      throw new Error(`Кімнати з ID "${bookingDto.roomID}" не існує.`);
     }
 
     const hasRequiredActivity = room.activities.some(
@@ -79,7 +77,7 @@ export class BookingService {
       eventPackage.requiredActivityType != undefined
     ) {
       throw new Error(
-        `Відмова! Для пакету "${eventPackage.name}" у кімнаті обов'язково має бути: "${eventPackage.requiredActivityType}". Оберіть іншу кімнату.`,
+        `Для пакету "${eventPackage.name}" у кімнаті обов'язково має бути: "${eventPackage.requiredActivityType}". Оберіть іншу кімнату.`,
       );
     }
 
@@ -97,7 +95,7 @@ export class BookingService {
   cancelBooking(bookingId: string): boolean {
     const booking = this.uow.bookings.getById(bookingId);
     if (!booking) {
-      throw new Error('Помилка: Бронювання не знайдено.');
+      throw new Error('Бронювання не знайдено.');
     }
 
     this.uow.bookings.delete(bookingId);

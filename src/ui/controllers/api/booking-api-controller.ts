@@ -17,7 +17,7 @@ export class BookingApiController {
     res: express.Response,
   ): void => {
     try {
-      const data = req.body as CreateBookingRequest;
+      const data = req.body;
 
       const dto: BookingDTO = {
         id: Date.now().toString(),
@@ -28,10 +28,9 @@ export class BookingApiController {
         eventPackageId: data.eventPackageId,
       };
 
-      const success =
-        data.isTurnkeyEvent && data.eventPackageId
-          ? this.bookingService.bookTurnkeyEvent(dto, data.eventPackageId)
-          : this.bookingService.bookRoom(dto);
+      data.isTurnkeyEvent && data.eventPackageId
+        ? this.bookingService.bookTurnkeyEvent(dto, data.eventPackageId)
+        : this.bookingService.bookRoom(dto);
 
       res.status(201).json({ message: 'Успішно забронювано!' });
     } catch (error: any) {
